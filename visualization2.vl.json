@@ -1,0 +1,464 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "data": {
+    "url": "https://pub-60d0175aab0d4452b9cd057183cef97d.r2.dev/final_visualization_data.csv"
+  },
+  "vconcat": [
+    {
+      "hconcat": [
+        {
+          "title": "Average annual investment by region",
+          "width": 300,
+          "height": 320,
+          "transform": [
+            {
+              "filter": {
+                "param": "yearBrush"
+              }
+            },
+            {
+              "aggregate": [
+                {
+                  "op": "mean",
+                  "field": "GFCF",
+                  "as": "Avg_GFCF"
+                }
+              ],
+              "groupby": [
+                "Region_Code",
+                "Region"
+              ]
+            },
+            {
+              "lookup": "Region_Code",
+              "from": {
+                "data": {
+                  "url": "https://cdn.cso.ie/static/map/en/ie_nuts2.json",
+                  "format": {
+                    "type": "json",
+                    "property": "features"
+                  }
+                },
+                "key": "properties.AREA_ID"
+              },
+              "as": "geo"
+            },
+            {
+              "filter": "datum.geo != null"
+            },
+            {
+              "calculate": "datum.Region + '|' + '€' + format(datum.Avg_GFCF, ',.0f') + 'm'",
+              "as": "Map_Label"
+            }
+          ],
+          "projection": {
+            "type": "identity",
+            "reflectY": true
+          },
+          "layer": [
+            {
+              "params": [
+                {
+                  "name": "regionSelection",
+                  "select": {
+                    "type": "point",
+                    "fields": [
+                      "Region_Code"
+                    ],
+                    "toggle": false,
+                    "clear": "dblclick"
+                  }
+                }
+              ],
+              "mark": {
+                "type": "geoshape",
+                "cursor": "pointer"
+              },
+              "encoding": {
+                "shape": {
+                  "field": "geo",
+                  "type": "geojson"
+                },
+                "color": {
+                  "field": "Avg_GFCF",
+                  "type": "quantitative",
+                  "title": "Avg. annual GFCF (€m)",
+                  "scale": {
+                    "scheme": "blues"
+                  },
+                  "legend": {
+                    "title": "Avg. annual GFCF (€m)"
+                  }
+                },
+                "stroke": {
+                  "condition": {
+                    "param": "regionSelection",
+                    "empty": false,
+                    "value": "#FFDD55"
+                  },
+                  "value": "#F0F0F0"
+                },
+                "strokeWidth": {
+                  "condition": {
+                    "param": "regionSelection",
+                    "empty": false,
+                    "value": 1.4
+                  },
+                  "value": 0.7
+                }
+              }
+            },
+            {
+              "transform": [
+                {
+                  "filter": "datum.Region_Code === 'IE04'"
+                }
+              ],
+              "mark": {
+                "type": "text",
+                "fontSize": 9,
+                "fontWeight": "normal",
+                "fill": "#111111",
+                "lineBreak": "|",
+                "lineHeight": 11,
+                "align": "center"
+              },
+              "encoding": {
+                "x": {
+                  "value": 95
+                },
+                "y": {
+                  "value": 92
+                },
+                "text": {
+                  "field": "Map_Label",
+                  "type": "nominal"
+                }
+              }
+            },
+            {
+              "transform": [
+                {
+                  "filter": "datum.Region_Code === 'IE06'"
+                }
+              ],
+              "mark": {
+                "type": "text",
+                "fontSize": 9,
+                "fontWeight": "normal",
+                "fill": "#111111",
+                "lineBreak": "|",
+                "lineHeight": 11,
+                "align": "center"
+              },
+              "encoding": {
+                "x": {
+                  "value": 205
+                },
+                "y": {
+                  "value": 160
+                },
+                "text": {
+                  "field": "Map_Label",
+                  "type": "nominal"
+                }
+              }
+            },
+            {
+              "transform": [
+                {
+                  "filter": "datum.Region_Code === 'IE05'"
+                }
+              ],
+              "mark": {
+                "type": "text",
+                "fontSize": 9,
+                "fontWeight": "normal",
+                "fill": "#111111",
+                "lineBreak": "|",
+                "lineHeight": 11,
+                "align": "center"
+              },
+              "encoding": {
+                "x": {
+                  "value": 130
+                },
+                "y": {
+                  "value": 245
+                },
+                "text": {
+                  "field": "Map_Label",
+                  "type": "nominal"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "title": "Investment and income over time",
+          "width": 460,
+          "height": 320,
+          "transform": [
+            {
+              "filter": {
+                "param": "regionSelection"
+              }
+            },
+            {
+              "fold": [
+                "GFCF_Index",
+                "Income_Index"
+              ],
+              "as": [
+                "Metric",
+                "Index"
+              ]
+            }
+          ],
+          "params": [
+            {
+              "name": "yearBrush",
+              "select": {
+                "type": "interval",
+                "encodings": [
+                  "x"
+                ],
+                "clear": "dblclick",
+                "translate": true,
+                "zoom": false,
+                "mark": {
+                  "fillOpacity": 0.15,
+                  "strokeWidth": 1
+                }
+              }
+            }
+          ],
+          "mark": {
+            "type": "line"
+          },
+          "encoding": {
+            "x": {
+              "field": "Year",
+              "type": "quantitative",
+              "scale": {
+                "domain": [
+                  2000,
+                  2022
+                ]
+              },
+              "axis": {
+                "title": "Year",
+                "format": "d",
+                "tickMinStep": 1
+              }
+            },
+            "y": {
+              "field": "Index",
+              "type": "quantitative",
+              "axis": {
+                "title": "Index (2000 = 100)"
+              }
+            },
+            "color": {
+              "field": "Region",
+              "type": "nominal",
+              "title": "Region",
+              "scale": {
+                "domain": [
+                  "Northern & Western",
+                  "Southern",
+                  "Eastern & Midland"
+                ],
+                "range": [
+                  "#4C78A8",
+                  "#F58518",
+                  "#54A24B"
+                ]
+              },
+              "legend": {
+                "orient": "right",
+                "direction": "vertical",
+                "columns": 1,
+                "titleOrient": "top"
+              }
+            },
+            "strokeDash": {
+              "field": "Metric",
+              "type": "nominal",
+              "title": "Indicator",
+              "scale": {
+                "domain": [
+                  "GFCF_Index",
+                  "Income_Index"
+                ],
+                "range": [
+                  [
+                    1,
+                    0
+                  ],
+                  [
+                    6,
+                    4
+                  ]
+                ]
+              },
+              "legend": {
+                "orient": "right",
+                "direction": "vertical",
+                "columns": 1,
+                "titleOrient": "top",
+                "labelExpr": "replace(datum.label, '_', ' ')"
+              }
+            },
+            "detail": [
+              {
+                "field": "Region_Code"
+              },
+              {
+                "field": "Metric"
+              }
+            ],
+            "tooltip": [
+              {
+                "field": "Region",
+                "type": "nominal",
+                "title": "Region"
+              },
+              {
+                "field": "Year",
+                "type": "quantitative",
+                "format": "d",
+                "title": "Year"
+              },
+              {
+                "field": "Metric",
+                "type": "nominal",
+                "title": "Indicator"
+              },
+              {
+                "field": "Index",
+                "type": "quantitative",
+                "format": ".1f",
+                "title": "Index"
+              }
+            ]
+          }
+        }
+      ],
+      "spacing": 20,
+      "resolve": {
+        "scale": {
+          "color": "independent",
+          "strokeDash": "independent"
+        }
+      }
+    },
+    {
+      "title": "Relationship between investment and income",
+      "width": 800,
+      "height": 340,
+      "transform": [
+        {
+          "filter": {
+            "param": "regionSelection"
+          }
+        },
+        {
+          "filter": {
+            "param": "yearBrush"
+          }
+        }
+      ],
+      "mark": {
+        "type": "point",
+        "filled": true,
+        "size": 90
+      },
+      "encoding": {
+        "x": {
+          "field": "GFCF_Index",
+          "type": "quantitative",
+          "axis": {
+            "title": "GFCF Index (2000 = 100)"
+          }
+        },
+        "y": {
+          "field": "Income_Index",
+          "type": "quantitative",
+          "axis": {
+            "title": "Disposable Income Index (2000 = 100)"
+          }
+        },
+        "color": {
+          "field": "Region",
+          "type": "nominal",
+          "scale": {
+            "domain": [
+              "Northern & Western",
+              "Southern",
+              "Eastern & Midland"
+            ],
+            "range": [
+              "#4C78A8",
+              "#F58518",
+              "#54A24B"
+            ]
+          },
+          "legend": null
+        },
+        "tooltip": [
+          {
+            "field": "Region",
+            "type": "nominal",
+            "title": "Region"
+          },
+          {
+            "field": "Year",
+            "type": "quantitative",
+            "format": "d",
+            "title": "Year"
+          },
+          {
+            "field": "GFCF_Index",
+            "type": "quantitative",
+            "format": ".1f",
+            "title": "GFCF Index"
+          },
+          {
+            "field": "Income_Index",
+            "type": "quantitative",
+            "format": ".1f",
+            "title": "Income Index"
+          }
+        ]
+      }
+    }
+  ],
+  "spacing": 35,
+  "resolve": {
+    "scale": {
+      "color": "independent",
+      "strokeDash": "independent"
+    }
+  },
+  "config": {
+    "view": {
+      "stroke": null
+    },
+    "axis": {
+      "labelFontSize": 11,
+      "titleFontSize": 12,
+      "titlePadding": 10
+    },
+    "legend": {
+      "labelFontSize": 11,
+      "titleFontSize": 12
+    },
+    "title": {
+      "fontSize": 15,
+      "subtitleFontSize": 11,
+      "anchor": "start",
+      "offset": 24
+    }
+  }
+}
